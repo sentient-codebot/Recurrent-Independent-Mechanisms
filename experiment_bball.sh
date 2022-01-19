@@ -1,6 +1,5 @@
 #!/bin/zsh
 echo Running on $HOSTNAME
-source ~/.zshrc
 
 train_dataset = "balls3curtain64.h5"
 hidden_size = 510
