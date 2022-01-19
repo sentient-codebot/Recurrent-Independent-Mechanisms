@@ -175,9 +175,9 @@ class BallModel(nn.Module):
         super().__init__()
         self.args = args
         self.input_size = args.hidden_size
-        self.output_size = args.hidden_size
+        self.output_size = args.hidden_size * args.num_units
 
-        self.Encoder = self.make_encoder()
+        self.Encoder = self.make_encoder().to(self.args.device)
         
         self.Decoder = None
         self.make_decoder()
@@ -242,18 +242,18 @@ class BallModel(nn.Module):
             Interpolate(scale_factor=2, mode='bilinear'),
             nn.Conv2d(16, 1, kernel_size=3, stride=1, padding=0),
             nn.Sigmoid()
-        )
+        ).to(self.args.device)
 
     def forward(self, x, h_prev):
         encoded_input = self.Encoder(x)
         h_new, foo, bar = self.rim_model(encoded_input, h_prev)
-        dec_out_ = self.Decoder(h_new)
+        dec_out_ = self.Decoder(h_new.view(h_new.shape[0],-1))
 
         return dec_out_, h_new
 
     def init_hidden(self, batch_size): 
         # assert False, "don't call this"
-        return torch.zeros_like((batch_size, 
+        return torch.zeros((batch_size, 
             self.rim_model.num_units, 
             self.rim_model.hidden_size), 
             requires_grad=False)

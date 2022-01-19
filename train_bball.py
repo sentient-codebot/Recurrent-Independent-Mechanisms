@@ -53,15 +53,16 @@ def train(model, train_loader, optimizer, epoch, logbook,
         for frame in range(49):
             output, hidden = model(data[:, frame, :, :, :], hidden)
 
-            if should_log_heatmap:
-                if frame % args.frame_frequency_to_log_heatmaps == 0:
-                    logbook.write_image(
-                        img=plt.imshow(block_rules_correlation_matrix,
-                                       cmap='hot', interpolation='nearest'),
-                        mode="train",
-                        step=train_batch_idx,
-                        caption=f"{frame}_block_rules_correlation_matrix"
-                    )
+            # NOTE block_rules_correlation_matrix undefined. (???)
+            # if should_log_heatmap:
+            #     if frame % args.frame_frequency_to_log_heatmaps == 0:
+            #         logbook.write_image(
+            #             img=plt.imshow(block_rules_correlation_matrix,
+            #                            cmap='hot', interpolation='nearest'),
+            #             mode="train",
+            #             step=train_batch_idx,
+            #             caption=f"{frame}_block_rules_correlation_matrix"
+            #         )
 
             target = data[:, frame + 1, :, :, :]
             loss += loss_fn(output, target)
@@ -220,6 +221,8 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
     args.directory = './data' # dataset directory
+    if args.mini:
+        args.directory = 'D:\Projecten\Recurrent-Independent-Mechanisms\data' # dataset directory, windows os
     train_loader, test_loader, transfer_loader = get_dataloaders(args)
 
     train_batch_idx = 0

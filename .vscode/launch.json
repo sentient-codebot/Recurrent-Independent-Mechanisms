@@ -64,7 +64,10 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
+                "--mini",
                 "--train_dataset",
+                "balls3curtain64.h5",
+                "--transfer_dataset",
                 "balls3curtain64.h5",
                 "--hidden_size",
                 "10",

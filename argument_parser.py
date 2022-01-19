@@ -135,6 +135,7 @@ def argument_parser():
     parser.add_argument('--comm_value_size', type=int)
     parser.add_argument('--comm_query_size', type=int)
     parser.add_argument('--num_comm_heads', type=int, default=4)
+    parser.add_argument('--mini', action=store_true, default=False)
 
 
     args = parser.parse_args()
