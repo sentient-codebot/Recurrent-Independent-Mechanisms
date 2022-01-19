@@ -64,7 +64,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "--mini",
+                // "--mini",
                 "--train_dataset",
                 "balls3curtain64.h5",
                 "--transfer_dataset",
