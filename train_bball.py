@@ -221,8 +221,8 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
     args.directory = './data' # dataset directory
-    if args.mini:
-        args.directory = 'D:\Projecten\Recurrent-Independent-Mechanisms\data' # dataset directory, windows os
+    # if args.mini:
+    #     args.directory = 'D:\Projecten\Recurrent-Independent-Mechanisms\data' # dataset directory, windows os
     train_loader, test_loader, transfer_loader = get_dataloaders(args)
 
     train_batch_idx = 0
