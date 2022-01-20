@@ -36,9 +36,9 @@ def train(model, train_loader, optimizer, epoch, logbook,
     """Function to train the model"""
     model.train()
     # gamma = 0.5
-    hidden = model.init_hidden(args.batch_size).to(args.device) # NOTE write initialize
     # hidden = GruState(hidden)
     for batch_idx, data in enumerate(train_loader):
+        hidden = model.init_hidden(data.shape[0]).to(args.device) # NOTE initialize per epoch or per batch [??]
         if args.batch_frequency_to_log_heatmaps > 0 and \
                 train_batch_idx % args.batch_frequency_to_log_heatmaps == 0:
             should_log_heatmap = True
