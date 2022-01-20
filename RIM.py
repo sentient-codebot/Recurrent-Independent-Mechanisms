@@ -240,7 +240,11 @@ class RIMCell(nn.Module):
         query_layer = self.transpose_for_scores(query_layer, self.num_comm_heads, self.comm_query_size)
         key_layer = self.transpose_for_scores(key_layer, self.num_comm_heads, self.comm_key_size)
         value_layer = self.transpose_for_scores(value_layer, self.num_comm_heads, self.comm_value_size)
+        query_layer = torch.clamp(query_layer, min=-1e6, max=1e6)
+        key_layer = torch.clamp(key_layer, min=-1e6, max=1e6)
+        value_layer = torch.clamp(value_layer, min=-1e6, max=1e6)
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
+        attention_scores = torch.clamp(attention_scores, min=-1e7, max=1e7)
         attention_scores = attention_scores / math.sqrt(self.comm_key_size)
         
         attention_probs = nn.Softmax(dim=-1)(attention_scores)
@@ -258,6 +262,12 @@ class RIMCell(nn.Module):
         context_layer = context_layer + h
         
         return context_layer
+
+    def nan_hook(self, out):
+        nan_mask = torch.isnan(out)
+        if nan_mask.any():
+            print("In", self.__class__.__name__)
+            raise RuntimeError(f"Found NAN in output: ", nan_mask.nonzero(), "where:", out[nan_mask.nonzero()[:, 0].unique(sorted=True)])
 
     def forward(self, x, hs, cs = None):
         """
@@ -277,13 +287,14 @@ class RIMCell(nn.Module):
         if cs is not None:
             c_old = cs * 1.0
         
-
+        self.nan_hook(inputs)
         # Compute RNN(LSTM or GRU) output
         
         if cs is not None:
             hs, cs = self.rnn(inputs, (hs, cs))
         else:
             hs = self.rnn(inputs, hs)
+        self.nan_hook(hs)
 
         # Block gradient through inactive units
         mask = mask.unsqueeze(2)
@@ -291,12 +302,13 @@ class RIMCell(nn.Module):
 
         # Compute communication attention
         h_new = self.communication_attention(h_new, mask.squeeze(2))
+        self.nan_hook(h_new)
 
         hs = mask * h_new + (1 - mask) * h_old
         if cs is not None:
             cs = mask * cs + (1 - mask) * c_old
             return hs, cs, None
-
+        self.nan_hook(hs)
         return hs, None, None
 
 

@@ -246,8 +246,11 @@ class BallModel(nn.Module):
 
     def forward(self, x, h_prev):
         encoded_input = self.Encoder(x)
+        self.nan_hook(encoded_input)
         h_new, foo, bar = self.rim_model(encoded_input, h_prev)
+        self.nan_hook(h_new)
         dec_out_ = self.Decoder(h_new.view(h_new.shape[0],-1))
+        self.nan_hook(dec_out_)
 
         return dec_out_, h_new
 
@@ -257,6 +260,12 @@ class BallModel(nn.Module):
             self.rim_model.num_units, 
             self.rim_model.hidden_size), 
             requires_grad=False)
+
+    def nan_hook(self, out):
+        nan_mask = torch.isnan(out)
+        if nan_mask.any():
+            print("In", self.__class__.__name__)
+            raise RuntimeError(f"Found NAN in output {i} at indices: ", nan_mask.nonzero(), "where:", out[nan_mask.nonzero()[:, 0].unique(sorted=True)])
 
 
 
