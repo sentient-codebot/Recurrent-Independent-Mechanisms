@@ -220,9 +220,8 @@ def main():
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
-    args.directory = './data' # dataset directory
-    # if args.mini:
-    #     args.directory = 'D:\Projecten\Recurrent-Independent-Mechanisms\data' # dataset directory, windows os
+    # args.directory = './data' # dataset directory
+    args.directory = 'D:\Projecten\Recurrent-Independent-Mechanisms\data' # dataset directory, windows os
     train_loader, test_loader, transfer_loader = get_dataloaders(args)
 
     train_batch_idx = 0
@@ -276,7 +275,7 @@ def setup_model(args, logbook):
         #     logbook.write_message_logs(message=f"Loading model from {path_to_load_model}")
         #     _, shape_offset = model.load_state_dict(torch.load(path_to_load_model.strip()),
         #                                          shape_offset)
-        model.load_state_dict(torch.load(path_to_load_model.strip()))
+        model.load_state_dict(torch.load(args.path_to_load_model.strip()))
         # torch.save(model.state_dict(), f"{args.folder_log}/model/{epoch}")
 
         # NOTE what's the point?
