@@ -3,7 +3,7 @@ echo Running on $HOSTNAME
 source cas_env/bin/activate
 
 train_dataset="balls3curtain64.h5"
-hidden_size=510
+hidden_size=100
 should_save_csv="False"
 lr=0.0007
 num_units=6
@@ -13,11 +13,11 @@ version=0
 rnn_cell="GRU"
 input_key_size=64
 input_value_size=2040
-input_query_size=510
+input_query_size=64
 input_dropout=0.1
 comm_key_size=32
 comm_value_size=32
-comm_query_size=510
+comm_query_size=32
 num_comm_heads=4
 comm_dropout=0.1
 experiment_name="Curtain"
