@@ -1,6 +1,6 @@
 #!/bin/zsh
 echo Running on $HOSTNAME
-source cas_env/bin/activate
+source ../../cas_env/bin/activate
 
 train_dataset="balls3curtain64.h5"
 hidden_size=100
