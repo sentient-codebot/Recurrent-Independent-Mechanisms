@@ -246,10 +246,13 @@ class BallModel(nn.Module):
 
     def forward(self, x, h_prev):
         encoded_input = self.Encoder(x)
+        encoded_input = clamp(encoded_input)
         self.nan_hook(encoded_input)
         h_new, foo, bar = self.rim_model(encoded_input, h_prev)
+        h_new = clamp(h_new)
         self.nan_hook(h_new)
         dec_out_ = self.Decoder(h_new.view(h_new.shape[0],-1))
+        dec_out_ = clamp(dec_out_)
         self.nan_hook(dec_out_)
 
         return dec_out_, h_new
@@ -267,7 +270,8 @@ class BallModel(nn.Module):
             print("In", self.__class__.__name__)
             raise RuntimeError(f"Found NAN in output: ", nan_mask.nonzero(), "where:", out[nan_mask.nonzero()[:, 0].unique(sorted=True)])
 
-
+def clamp(input_tensor):
+    return torch.clamp(input_tensor, min=-1e6, max=1e6)
 
 def main():
     gamma = 0.1
