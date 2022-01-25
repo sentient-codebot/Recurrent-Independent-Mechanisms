@@ -267,8 +267,7 @@ class BallModel(nn.Module):
     def nan_hook(self, out):
         nan_mask = torch.isnan(out)
         if nan_mask.any():
-            print("In", self.__class__.__name__)
-            raise RuntimeError(f"Found NAN in output: ", nan_mask.nonzero(), "where:", out[nan_mask.nonzero()[:, 0].unique(sorted=True)])
+            raise RuntimeError(f"Found NAN in {self.__class__.__name__}: ", nan_mask.nonzero(), "where:", out[nan_mask.nonzero()[:, 0].unique(sorted=True)])
 
 def clamp(input_tensor):
     return torch.clamp(input_tensor, min=-1e6, max=1e6)

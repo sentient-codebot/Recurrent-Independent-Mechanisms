@@ -7,6 +7,7 @@ from time import time
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+torch.manual_seed(1997)
 
 from networks import BallModel
 # from model_components import GruState 
@@ -64,14 +65,14 @@ def train(model, train_loader, optimizer, epoch, logbook,
             #             caption=f"{frame}_block_rules_correlation_matrix"
             #         )
 
-            target = torch.clamp(data[:, frame + 1, :, :, :], min=0, max=1)
-            loss += loss_fn(torch.clamp(output, min=0, max=1), target)
+            target = data[:, frame + 1, :, :, :]
+            loss += loss_fn(output, target)
 
         (loss).backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         optimizer.step()
 
-        train_batch_idx += 1
+        train_batch_idx += 1 # TOTAL batch index
         metrics = {
             "loss": loss.cpu().item(),
             "mode": "train",

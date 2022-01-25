@@ -3,9 +3,11 @@ from __future__ import print_function
 
 import h5py
 import numpy as np
+from numpy.random import default_rng
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Dataset
+torch.manual_seed(1997)
 
 
 class LoadDataset(Dataset):
@@ -90,7 +92,8 @@ class LoadRGBDataset(Dataset):
          #print(self.data_to_use.shape)
          uniques = np.unique(features)[1:]
          uniques = uniques.astype(int)
-         rc = [np.random.choice([0,1,2,3]) for _ in range(len(uniques))]
+         rng = default_rng(1997)
+         rc = [rng.choice([0,1,2,3]) for _ in range(len(uniques))]
 
          self.data_to_use2 = np.zeros((Time, 3, X_dim, Y_dim))
          for t in range(Time):
