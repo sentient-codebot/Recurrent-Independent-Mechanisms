@@ -38,6 +38,7 @@ def train(model, train_loader, optimizer, epoch, logbook,
     model.train()
     # gamma = 0.5
     # hidden = GruState(hidden)
+    epoch_loss = torch.tensor(0.)
     for batch_idx, data in enumerate(train_loader):
         hidden = model.init_hidden(data.shape[0]).to(args.device) # NOTE initialize per epoch or per batch [??]
         if args.batch_frequency_to_log_heatmaps > 0 and \
@@ -82,9 +83,11 @@ def train(model, train_loader, optimizer, epoch, logbook,
         }
         logbook.write_metric_logs(metrics=metrics)
 
+        epoch_loss += loss
         print("Train loss is: ", loss)
 
-    return train_batch_idx
+    epoch_loss = epoch_loss / (batch_idx+1)
+    return train_batch_idx, epoch_loss.cpu().item()
 
 @torch.no_grad()
 def test(model, test_loader, epoch, transfer_loader, logbook,
@@ -232,15 +235,16 @@ def main():
     if args.should_resume:
         start_epoch = args.checkpoint["epoch"] + 1
         logbook.write_message_logs(message=f"Resuming experiment id: {args.id}, from epoch: {start_epoch}")
-
+    epoch_losses = []
     for epoch in range(start_epoch, args.epochs + 1):
-        train_batch_idx = train(model=model,
+        train_batch_idx, epoch_loss = train(model=model,
                                 train_loader=train_loader,
                                 optimizer=optimizer,
                                 epoch=epoch,
                                 logbook=logbook,
                                 train_batch_idx=train_batch_idx,
                                 args=args)
+        epoch_losses.append(epoch_loss)
         if epoch%50==0:
              print("Epoch number", epoch)
              test(model=model,
@@ -250,6 +254,9 @@ def main():
                  logbook=logbook,
                  train_batch_idx=train_batch_idx,
                  args=args)
+
+        epoch_losses=torch.tensor(epoch_losses)
+        torch.save(epoch_losses, f"{args.folder_log}/epoch_losses.pt")
 
         if args.model_persist_frequency > 0 and epoch % args.model_persist_frequency == 0:
             logbook.write_message_logs(message=f"Saving model to {args.folder_log}/model/{epoch}")
