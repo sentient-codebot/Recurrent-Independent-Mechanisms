@@ -38,7 +38,7 @@ def train(model, train_loader, optimizer, epoch, logbook,
     model.train()
     # gamma = 0.5
     # hidden = GruState(hidden)
-    epoch_loss = torch.tensor(0.)
+    epoch_loss = torch.tensor(0.).to(args.device)
     for batch_idx, data in enumerate(train_loader):
         hidden = model.init_hidden(data.shape[0]).to(args.device) # NOTE initialize per epoch or per batch [??]
         if args.batch_frequency_to_log_heatmaps > 0 and \
