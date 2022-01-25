@@ -21,7 +21,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 
-set_seed(0)
+set_seed(1997)
 
 loss_fn = torch.nn.BCELoss()
 
