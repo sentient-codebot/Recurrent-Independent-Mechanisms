@@ -255,8 +255,7 @@ def main():
                  train_batch_idx=train_batch_idx,
                  args=args)
 
-        epoch_losses=torch.tensor(epoch_losses)
-        torch.save(epoch_losses, f"{args.folder_log}/epoch_losses.pt")
+        torch.save(torch.tensor(epoch_losses), f"{args.folder_log}/epoch_losses.pt")
 
         if args.model_persist_frequency > 0 and epoch % args.model_persist_frequency == 0:
             logbook.write_message_logs(message=f"Saving model to {args.folder_log}/model/{epoch}")
