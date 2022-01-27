@@ -33,10 +33,10 @@ def repackage_hidden(ten_):
     else:
         return tuple(repackage_hidden(v) for v in ten_)
 
-def nan_hook(self, out):
+def nan_hook(out):
         nan_mask = torch.isnan(out)
         if nan_mask.any():
-            raise RuntimeError(f"Found NAN in {self.__class__.__name__}: ", nan_mask.nonzero(), "where:", out[nan_mask.nonzero()[:, 0].unique(sorted=True)])
+            raise RuntimeError(f"Found NAN in: ", nan_mask.nonzero(), "where:", out[nan_mask.nonzero()[:, 0].unique(sorted=True)])
 
 def train(model, train_loader, optimizer, epoch, logbook,
           train_batch_idx, args):
