@@ -174,7 +174,7 @@ class BallModel(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.args = args
-        self.input_size = args.hidden_size
+        self.input_size = args.hidden_size * args.num_units # NOTE What exactly
         self.output_size = args.hidden_size * args.num_units
 
         self.Encoder = self.make_encoder().to(self.args.device)
@@ -184,7 +184,7 @@ class BallModel(nn.Module):
 
         self.rim_model = RIMCell(
                                 device=self.args.device,
-                                input_size=self.input_size, # NOTE What exactly
+                                input_size=self.input_size, 
                                 num_units=self.args.num_units,
                                 hidden_size=self.args.hidden_size,
                                 k=self.args.k,
