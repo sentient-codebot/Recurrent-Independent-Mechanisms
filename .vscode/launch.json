@@ -54,7 +54,7 @@
                 "--batch_frequency_to_log_heatmaps",
                 "10",
                 "--model_persist_frequency",
-                "10"
+                "5"
             ]
         },
         {
