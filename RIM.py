@@ -271,7 +271,7 @@ class RIMCell(nn.Module):
 
     def forward(self, x, hs, cs = None):
         """
-        Input : x (batch_size, 1 , input_size)
+        Input : x (batch_size, input_size)
                 hs (batch_size, num_units, hidden_size)
                 cs (batch_size, num_units, hidden_size)
         Output: new hs, cs for LSTM

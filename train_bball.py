@@ -7,6 +7,7 @@ from time import time
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from torch import autograd
 torch.manual_seed(1997)
 
 from networks import BallModel
@@ -52,26 +53,27 @@ def train(model, train_loader, optimizer, epoch, logbook,
         hidden = hidden.detach()
         optimizer.zero_grad()
         loss = 0
-        for frame in range(49):
-            output, hidden = model(data[:, frame, :, :, :], hidden)
+        with autograd.detect_anomaly():
+            for frame in range(49):
+                output, hidden = model(data[:, frame, :, :, :], hidden)
 
-            # NOTE block_rules_correlation_matrix undefined. (???)
-            # if should_log_heatmap:
-            #     if frame % args.frame_frequency_to_log_heatmaps == 0:
-            #         logbook.write_image(
-            #             img=plt.imshow(block_rules_correlation_matrix,
-            #                            cmap='hot', interpolation='nearest'),
-            #             mode="train",
-            #             step=train_batch_idx,
-            #             caption=f"{frame}_block_rules_correlation_matrix"
-            #         )
+                # NOTE block_rules_correlation_matrix undefined. (???)
+                # if should_log_heatmap:
+                #     if frame % args.frame_frequency_to_log_heatmaps == 0:
+                #         logbook.write_image(
+                #             img=plt.imshow(block_rules_correlation_matrix,
+                #                            cmap='hot', interpolation='nearest'),
+                #             mode="train",
+                #             step=train_batch_idx,
+                #             caption=f"{frame}_block_rules_correlation_matrix"
+                #         )
 
-            target = data[:, frame + 1, :, :, :]
-            loss += loss_fn(output, target)
+                target = data[:, frame + 1, :, :, :]
+                loss += loss_fn(output, target)
 
-        (loss).backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        optimizer.step()
+            (loss).backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            optimizer.step()
 
         train_batch_idx += 1 # TOTAL batch index
         metrics = {
@@ -83,7 +85,7 @@ def train(model, train_loader, optimizer, epoch, logbook,
         }
         logbook.write_metric_logs(metrics=metrics)
 
-        epoch_loss += loss
+        epoch_loss += loss.detach()
         print("Train loss is: ", loss)
 
     epoch_loss = epoch_loss / (batch_idx+1)
