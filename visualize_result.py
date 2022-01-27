@@ -66,15 +66,16 @@ def main():
     for epoch in range(start_epoch,start_epoch+1):
         model.eval()
         with torch.no_grad():
-            batch_idx, data = next(iter(train_loader))
+            data = next(iter(train_loader))
             hidden = model.init_hidden(data.shape[0]).to(args.device) # NOTE initialize per epoch or per batch [??]
             data = data.to(args.device)
             hidden = hidden.detach()
             pred = torch.zeros_like(data)
             for frame in range(49):
                 output, hidden = model(data[:, frame, :, :, :], hidden)
-                pred[:,frame,:,:] = output
+                pred[:,frame+1,:,:,:] = output
             
+            pred = pred[:,1:,:,:,:]
             plot_frames(pred, data, 10, 20, 6)
 
 def setup_model(args, logbook):
