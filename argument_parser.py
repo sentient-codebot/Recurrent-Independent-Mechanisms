@@ -142,6 +142,10 @@ def argument_parser():
 
     args.frame_frequency_to_log_heatmaps = 5
 
+    args.id = f"SchemaBlocks_{args.hidden_size}_{args.num_units}"+\
+        f"_{args.experiment_name}_{args.lr}_num_inp_heads_{args.num_input_heads}"+\
+        f"_ver_{args.version}"
+
     args.folder_log = f"./logs/{args.id}"
 
     # if args.num_encoders != 1:
