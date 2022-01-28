@@ -27,6 +27,19 @@ def plot_curve(loss):
     axs.plot(loss)
     plt.savefig(f"loss_curve.png",dpi=120)
 
+class VectorLog:
+    def __init__(self, save_path, var_name):
+        self.save_path = save_path
+        self.var_name = var_name+".pt"
+        self.var = []
+
+    def append(self, value):
+        self.var.append(value)
+
+    def save(self):
+        var_tensor = torch.tensor(self.var)
+        torch.save(torch.tensor(epoch_losses), f"{args.folder_log}/epoch_losses.pt")
+        torch.save(var_tensor, self.save_path+"/"+self.var_name)
 
 def main():
     data = torch.rand((64,51,1,64,64))

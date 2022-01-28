@@ -16,6 +16,7 @@ from argument_parser import argument_parser
 from dataset import get_dataloaders
 from logbook.logbook import LogBook
 from utils.util import set_seed, make_dir
+from utils.visualize import VectorLog
 from box import Box
 
 import os
@@ -38,9 +39,19 @@ def nan_hook(out):
         if nan_mask.any():
             raise RuntimeError(f"Found NAN in: ", nan_mask.nonzero(), "where:", out[nan_mask.nonzero()[:, 0].unique(sorted=True)])
 
+def get_grad_norm(model):
+    total_norm = 0.
+    for p in model.parameters():
+        param_norm = p.grad.detach().data.norm(2)
+        total_norm += param_norm.item() ** 2
+    total_norm = total_norm ** 0.5
+    return total_norm
+
 def train(model, train_loader, optimizer, epoch, logbook,
           train_batch_idx, args):
     """Function to train the model"""
+    grad_norm_log = VectorLog(args.folder_log, "grad_norm")
+
     model.train()
     # gamma = 0.5
     # hidden = GruState(hidden)
@@ -78,8 +89,11 @@ def train(model, train_loader, optimizer, epoch, logbook,
                 loss += loss_fn(output, target)
 
             (loss).backward()
+            grad_norm = get_grad_norm(model)
+            grad_norm_log.append(grad_norm)
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
+            grad_norm_log.save()
 
         train_batch_idx += 1 # TOTAL batch index
         metrics = {
