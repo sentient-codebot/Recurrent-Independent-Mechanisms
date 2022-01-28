@@ -174,7 +174,7 @@ class BallModel(nn.Module):
     def __init__(self, args):
         super().__init__()
         self.args = args
-        self.input_size = args.hidden_size * args.num_units # NOTE What exactly
+        self.input_size = args.hidden_size * args.num_units # NOTE dimension of encoded input. not clearly mentioned in paper
         self.output_size = args.hidden_size * args.num_units
 
         self.Encoder = self.make_encoder().to(self.args.device)

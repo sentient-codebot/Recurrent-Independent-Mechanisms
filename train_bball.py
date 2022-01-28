@@ -91,7 +91,7 @@ def train(model, train_loader, optimizer, epoch, logbook,
             (loss).backward()
             grad_norm = get_grad_norm(model)
             grad_norm_log.append(grad_norm)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0, error_if_nonfinite=True)
             optimizer.step()
             grad_norm_log.save()
 
