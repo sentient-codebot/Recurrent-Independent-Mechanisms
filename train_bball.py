@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from torch import autograd
-torch.manual_seed(1997)
+# torch.manual_seed(1997)
 
 from networks import BallModel
 # from model_components import GruState 

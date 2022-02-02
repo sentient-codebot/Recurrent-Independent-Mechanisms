@@ -38,7 +38,6 @@ class VectorLog:
 
     def save(self):
         var_tensor = torch.tensor(self.var)
-        torch.save(torch.tensor(epoch_losses), f"{args.folder_log}/epoch_losses.pt")
         torch.save(var_tensor, self.save_path+"/"+self.var_name)
 
 def main():
