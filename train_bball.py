@@ -241,9 +241,7 @@ def main():
     use_cuda = torch.cuda.is_available()
     args.device = torch.device("cuda" if use_cuda else "cpu")
     # args.device = torch.device("cpu")
-    model = setup_model(args=args, logbook=logbook)
-
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    model, optimizer, start_epoch = setup_model(args=args, logbook=logbook)
 
     args.directory = './data' # dataset directory
     # args.directory = 'D:\Projecten\Recurrent-Independent-Mechanisms\data' # dataset directory, windows os
@@ -251,10 +249,6 @@ def main():
 
     train_batch_idx = 0
 
-    start_epoch = 1
-    if args.should_resume:
-        start_epoch = args.checkpoint["epoch"] + 1
-        logbook.write_message_logs(message=f"Resuming experiment id: {args.id}, from epoch: {start_epoch}")
     epoch_losses = []
     for epoch in range(start_epoch, args.epochs + 1):
         train_batch_idx, epoch_loss = train(model=model,
@@ -280,15 +274,23 @@ def main():
         if args.model_persist_frequency > 0 and epoch % args.model_persist_frequency == 0:
             logbook.write_message_logs(message=f"Saving model to {args.folder_log}/model/{epoch}")
             torch.save(model.state_dict(), f"{args.folder_log}/model/{epoch}")
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': epoch_loss,
+            }, f"{args.folder_log}/checkpoints/{epoch}")
 
 
 def setup_model(args, logbook):
     """Method to setup the model"""
 
     model = BallModel(args)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    start_epoch = 1
     if args.should_resume:
         # Find the last checkpointed model and resume from that
-        model_dir = f"{args.folder_log}/model"
+        model_dir = f"{args.folder_log}/checkpoints"
         latest_model_idx = max(
             [int(model_idx) for model_idx in listdir(model_dir)
              if model_idx != "args"]
@@ -303,8 +305,14 @@ def setup_model(args, logbook):
         #     logbook.write_message_logs(message=f"Loading model from {path_to_load_model}")
         #     _, shape_offset = model.load_state_dict(torch.load(path_to_load_model.strip()),
         #                                          shape_offset)
-        model.load_state_dict(torch.load(args.path_to_load_model.strip()))
-        # torch.save(model.state_dict(), f"{args.folder_log}/model/{epoch}")
+        checkpoint = torch.load(args.path_to_load_model.strip())
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        start_epoch = checkpoint['epoch'] + 1
+        loss = checkpoint['epoch']
+
+        logbook.write_message_logs(message=f"Resuming experiment id: {args.id}, from epoch: {start_epoch}")
+        
 
         # NOTE what's the point?
         # if not args.should_resume:
@@ -326,7 +334,7 @@ def setup_model(args, logbook):
 
     # model = model.to(args.device)
 
-    return model
+    return model, optimizer, start_epoch
 
 
 if __name__ == '__main__':
