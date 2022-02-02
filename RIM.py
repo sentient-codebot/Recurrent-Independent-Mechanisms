@@ -217,7 +217,8 @@ class RIMCell(nn.Module):
         row_index = np.repeat(row_index, self.k)
 
         mask_[row_index, topk1.indices.view(-1)] = 1
-        
+        self.nan_hook(attention_scores)
+        self.inf_hook(attention_scores)
         attention_probs = self.input_dropout(nn.Softmax(dim = -1)(attention_scores))
         inputs = torch.matmul(attention_probs, value_layer) * mask_.unsqueeze(2)
 
@@ -246,13 +247,15 @@ class RIMCell(nn.Module):
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
         attention_scores = torch.clamp(attention_scores, min=-1e7, max=1e7)
         attention_scores = attention_scores / math.sqrt(self.comm_key_size)
-        
+        self.inf_hook(attention_scores)
         attention_probs = nn.Softmax(dim=-1)(attention_scores)
         
         mask = [mask for _ in range(attention_probs.size(1))]
         mask = torch.stack(mask, dim = 1)
         
         attention_probs = attention_probs * mask.unsqueeze(3)
+        self.nan_hook(attention_probs)
+        self.inf_hook(attention_probs)
         attention_probs = self.comm_dropout(attention_probs)
         context_layer = torch.matmul(attention_probs, value_layer)
         context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
@@ -268,6 +271,11 @@ class RIMCell(nn.Module):
         if nan_mask.any():
             print("In", self.__class__.__name__)
             raise RuntimeError(f"Found NAN in output: ", nan_mask.nonzero(), "where:", out[nan_mask.nonzero()[:, 0].unique(sorted=True)])
+
+    def inf_hook(self, _tensor):
+        inf_mask = torch.isinf(_tensor)
+        if inf_mask.any():
+            raise RuntimeError(f"Found NAN in {self.__class__.__name__}: ", inf_mask.nonzero(), "where:", _tensor[inf_mask.nonzero()[:, 0].unique(sorted=True)])
 
     def forward(self, x, hs, cs = None):
         """
