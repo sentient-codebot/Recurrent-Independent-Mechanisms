@@ -235,6 +235,7 @@ def main():
     if not args.should_resume:
         # New Experiment
         make_dir(f"{args.folder_log}/model")
+        make_dir(f"{args.folder_log}/checkpoints")
         logbook.write_message_logs(message=f"Saving args to {args.folder_log}/model/args")
         torch.save({"args": vars(args)}, f"{args.folder_log}/model/args")
 
