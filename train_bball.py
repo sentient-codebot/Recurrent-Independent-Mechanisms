@@ -66,7 +66,7 @@ def train(model, train_loader, optimizer, epoch, logbook,
         loss = 0.
         
         for frame in range(49):
-            output, hidden, *intm = model(data[:, frame, :, :, :], hidden) # would it work? *_ ?
+            output, hidden, intm = model(data[:, frame, :, :, :], hidden) # would it work? *_ ?
 
             target = data[:, frame + 1, :, :, :]
             loss += loss_fn(output, target)

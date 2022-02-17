@@ -8,7 +8,7 @@
             "console": "integratedTerminal",
             "args": [
                 "--folder_log",
-                "logs/RIM_100_6_MMNIST_complete_0.0007_num_inp_heads_1_ver_0/intermediate_vars"
+                "logs/RIM_100_6_BBall_complete_0.0007_num_inp_heads_1_ver_0/intermediate_vars"
             ]
         },
         {
@@ -47,7 +47,13 @@
                 "--cfg_json",
                 "configs/bball_minimal/bball_minimal.json",
                 "--core",
-                "RIM"
+                "RIM",
+                "--transfer_dataset",
+                "balls3curtain64.h5",
+                "--test_dataset",
+                "balls3curtain64.h5",
+                "--train_dataset",
+                "balls3curtain64.h5"
 
             ]
         }

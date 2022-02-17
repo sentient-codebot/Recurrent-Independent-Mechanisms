@@ -68,7 +68,8 @@ def main():
 
     # TODO plot per-epoch tensors
     for epoch_idx in [10,30,60,90,120]:
-        gradnorm_plot(epoch_idx)
+        # gradnorm_plot(epoch_idx)
+        pass
 
 if __name__ == "__main__":
     main()
