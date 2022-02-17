@@ -121,7 +121,7 @@ def get_dataloaders(args):
     """Method to return the train, test and transfer dataloaders"""
 
     modes = ["training", "test", "transfer"]
-    dataset_names = [args.train_dataset, args.train_dataset, args.transfer_dataset]
+    dataset_names = [args.train_dataset, args.test_dataset, args.transfer_dataset]
     shuffle_list = [True, False, False] # original: True, False, False
 
     def _get_dataloader(mode, dataset_name, shuffle):

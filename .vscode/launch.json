@@ -28,13 +28,34 @@
             "name": "train bball complete",
             "type": "python",
             "request": "launch",
-            "program": "./train_bball.py",
+            "program": "${file}",
             "console": "integratedTerminal",
             "args": [
                 "--cfg_json",
                 "configs/bball_complete/bball_complete.json",
                 "--core",
-                "RIM"
+                "RIM",
+                "--should_resume",
+                "true"
+            ]
+        },
+        {
+            "name": "test bball complete",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--cfg_json",
+                "configs/bball_complete/bball_complete.json",
+                "--core",
+                "RIM",
+                "--should_resume",
+                "true",
+                "--test_dataset",
+                "balls4mass64.h5",
+                "--transfer_dataset",
+                "balls678mass64.h5"
             ]
         },
         {

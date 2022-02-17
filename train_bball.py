@@ -61,6 +61,8 @@ def train(model, train_loader, optimizer, epoch, logbook,
 
         start_time = time()
         data = data.to(args.device)
+        if data.dim()==4:
+            data = data.unsqueeze(2).float()
         hidden = hidden.detach()
         optimizer.zero_grad()
         loss = 0.
@@ -287,7 +289,7 @@ def setup_model(args, logbook):
         args.checkpoint = {"epoch": latest_model_idx}
 
     if args.path_to_load_model != "":
-        checkpoint = torch.load(args.path_to_load_model.strip())
+        checkpoint = torch.load(args.path_to_load_model.strip(), map_location=args.device) 
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         start_epoch = checkpoint['epoch'] + 1

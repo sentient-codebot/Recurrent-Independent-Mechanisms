@@ -104,7 +104,7 @@ def argument_parser():
                                 'trained',
                         help='path to dataset on which the model should be '
                              'trained')
-    parser.add_argument('--test_dataset', type=str,
+    parser.add_argument('--test_dataset', type=str, default="balls4mass64.h5",
                         metavar='path to dataset on which the model should be '
                                 'tested for stove',
                         help='path to dataset on which the model should be '
