@@ -291,6 +291,7 @@ class BallModel(nn.Module):
         dec_sigmoid = self.Decoder[0]
         module_mask = torch.zeros((1, self.args.num_units, 1))
         module_mask[:, num_module, :] = 1
+        module_mask.to(self.args.device)
         h = h.detach()
         num_activations = torch.sum((dec_sigmoid(h)*module_mask)>=threshold, dim=(1,2))
 
