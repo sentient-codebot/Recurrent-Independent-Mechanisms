@@ -361,7 +361,7 @@ class RIMCell(nn.Module):
 
         # Prepare the context/intermediate value
         ctx = {
-            "input_mask": mask,
+            "input_mask": mask.squeeze(),
         }
 
         # Update hs and cs and return them

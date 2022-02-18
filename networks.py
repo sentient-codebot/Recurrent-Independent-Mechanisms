@@ -259,8 +259,7 @@ class BallModel(nn.Module):
 
     def forward(self, x, h_prev):
         encoded_input = self.Encoder(x)
-        # encoded_input = clamp(encoded_input)
-        self.nan_hook(encoded_input)
+
         if self.core=='RIM':
             h_new, foo, bar, ctx = self.rim_model(encoded_input, h_prev)
         elif self.core=='GRU':
@@ -271,12 +270,21 @@ class BallModel(nn.Module):
             h_new = h_new.reshape(h_shape)
         elif self.core=='LSTM':
             raise ValueError('LSTM core not implemented yet!')
+        
+        # --- here just for test    ---
+        # module_mask = torch.tensor([1,1,1,0,0,0]).reshape(1,-1,1).to(self.args.device)
+        # h_new = h_new*module_mask
+        # --- above for test        ---
         dec_out_ = self.Decoder(h_new.view(h_new.shape[0],-1))
         
         intm = ctx
-        dec_actv_list = [self.dec_actv(h_new, num_module) for num_module in range(self.args.num_units)]
-        intm["decoder_activations"] = dec_actv_list
 
+        """ 
+        [
+            "input_mask",
+            # "decoder_activation"
+        ]
+        """
         return dec_out_, h_new, intm
 
     def init_hidden(self, batch_size): 
@@ -286,19 +294,21 @@ class BallModel(nn.Module):
             self.args.hidden_size), 
             requires_grad=False)
 
-    def dec_actv(self, h, num_module, threshold=1e-5):
-        """check the contribution of the (num_module)-th RIM by seeing how many of them are activated"""
-        dec_sigmoid = self.Decoder[0]
+    def dec_actv_old(self, h, num_module, threshold=1e-5):
+        """check the contribution of the (num_module)-th RIM by seeing how much they contribute to the activaiton of first relu"""
+        h = h.detach()
         module_mask = torch.zeros((1, self.args.num_units, 1))
         module_mask[:, num_module, :] = 1
         module_mask = module_mask.to(self.args.device)
-        h = h.detach()
-        num_activations = torch.sum((dec_sigmoid(h)*module_mask)>=threshold, dim=(1,2))
+        masked_h = h*module_mask
 
-        return num_activations
-
+        relu_layer_0 = self.Decoder[0:4](h.view(h.shape[0],-1))
+        relu_layer_0_masked = self.Decoder[0:4](masked_h.view(masked_h.shape[0],-1))
         
+        total_contri = torch.sum(relu_layer_0) + 1e-6
+        module_contri = torch.sum(relu_layer_0_masked) / total_contri
 
+        return module_contri
 
     def nan_hook(self, out):
         nan_mask = torch.isnan(out)

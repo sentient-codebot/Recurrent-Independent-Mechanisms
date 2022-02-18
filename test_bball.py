@@ -10,7 +10,8 @@ from argument_parser import argument_parser
 from dataset import get_dataloaders
 from logbook.logbook import LogBook
 from utils.util import set_seed, make_dir
-from utils.visualize import plot_frames, plot_curve
+from utils.visualize import ScalarLog, plot_frames, VectorLog
+from utils.metric import f1_score
 from box import Box
 from tqdm import tqdm
 
@@ -35,13 +36,19 @@ def get_grad_norm(model):
     total_norm = total_norm ** 0.5
     return total_norm
 
-@torch.no_grad()
-def test(model, test_loader, args):
+# @torch.no_grad()
+def test(model, test_loader, args, rollout=True):
+    rim_actv_log = VectorLog(args.folder_log+"/intermediate_vars", "rim_actv")
+    dec_actv_log = VectorLog(args.folder_log+"/intermediate_vars", "decoder_actv")
+    frame_loss_log = ScalarLog(args.folder_log+"/intermediate_vars", "frame_loss")
+    f1_score_log = ScalarLog(args.folder_log+"/intermediate_vars", "f1_score")
 
     model.eval()
 
     epoch_loss = torch.tensor(0.).to(args.device)
-    for batch_idx, data in tqdm(enumerate(test_loader)):
+    for batch_idx, data in enumerate(test_loader): # tqdm doesn't work here?
+        frame_loss_log.reset()
+        f1_score_log.reset()
         hidden = model.init_hidden(data.shape[0]).to(args.device)
 
         start_time = time()
@@ -50,22 +57,61 @@ def test(model, test_loader, args):
             data = data.unsqueeze(2).float()
         hidden = hidden.detach()
         loss = 0.
+        f1 = 0.
         prediction = torch.zeros_like(data)
 
         for frame in range(data.shape[1]-1):
-            output, hidden, intm = model(data[:, frame, :, :, :], hidden)
+            with torch.no_grad():
+                if not rollout:
+                    output, hidden, intm = model(data[:, frame, :, :, :], hidden)
+                elif frame >= 15:
+                    output, hidden, intm = model(output, hidden)
+                else:
+                    output, hidden, intm = model(data[:, frame, :, :, :], hidden)
 
-            nan_hook(output)
-            nan_hook(hidden)
-            target = data[:, frame+1, :, :, :]
-            prediction[:, frame+1, :, :, :] = output
-            loss += loss_fn(output, target)
+                target = data[:, frame+1, :, :, :]
+                prediction[:, frame+1, :, :, :] = output
+                loss += loss_fn(output, target)
+                f1_frame = f1_score(target, output)
+                f1 += f1_frame
+
+                frame_loss_log.append(loss_fn(output, target)) # * num_frames OR now?? NO, because I am check the loss in FRAME by FRAME
+                f1_score_log.append(f1_frame)
+            print(f"Frame {frame} F1 score: {f1_frame}")
+
+            intm["decoder_utilization"] = dec_rim_util(model, hidden, args)
+            rim_actv_log.append(intm["input_mask"][-1]) # shape (batchsize, num_units, 1)
+            dec_actv_log.append(intm["decoder_utilization"][-1])
 
         epoch_loss += loss.detach()
+        if args.device == torch.device("cpu"):
+            break
         
+    rim_actv_log.save()
+    dec_actv_log.save()
+    frame_loss_log.save()
+
     prediction = prediction[:, 1:, :, :, :]
     epoch_loss = epoch_loss / (batch_idx+1)
-    return epoch_loss, prediction, data
+    f1_avg = f1 / (batch_idx+1) / (data.shape[1]-1)
+
+    """save last batch of intermediate variables"""
+
+
+    return epoch_loss, prediction, data, f1_avg
+
+def dec_rim_util(model, h, args):
+    """check the contribution of the (num_module)-th RIM by seeing how much they contribute to the activaiton of first relu"""
+    h = h.detach()
+    h = torch.tensor(h, requires_grad=True)
+    
+    h_flat = h.view(h.shape[0],-1)
+    decoded = model.Decoder(h_flat)
+    grad = torch.autograd.grad(decoded.sum(), h)[0]
+
+    util_dec = torch.sum(torch.abs(grad), dim=2)
+    return util_dec
+
 
 def main():
     args = argument_parser()
@@ -84,15 +130,17 @@ def main():
     args.directory = './data' # dataset directory
     train_loader, test_loader, transfer_loader = get_dataloaders(args)
     
-    epoch_loss, prediction, target = test(
+    epoch_loss, prediction, target, f1_avg = test(
         model = model,
         test_loader = test_loader,
         args = args
     )
     print(f"test loss: {epoch_loss}")
-    plot_frames(prediction, target, start_frame=0, end_frame=20, batch=[2,3,4,5,6,7])
+    print(f"test average F1 score: {f1_avg}")
+    plot_frames(prediction, target, start_frame=10, end_frame=40, sample=[0,-1])
 
-    wait = input("Press any key to terminate program. ")
+    # wait = input("Press any key to terminate program. ")
+    return None
         
 def setup_model(args, logbook):
     model = BallModel(args)

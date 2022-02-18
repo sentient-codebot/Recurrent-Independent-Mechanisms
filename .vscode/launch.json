@@ -53,9 +53,9 @@
                 "--should_resume",
                 "true",
                 "--test_dataset",
-                "balls4mass64.h5",
-                "--transfer_dataset",
-                "balls678mass64.h5"
+                "balls3curtain64.h5",
+                "--log_intm_frequency",
+                "10"
             ]
         },
         {

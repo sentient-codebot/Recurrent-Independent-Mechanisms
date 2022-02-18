@@ -4,6 +4,7 @@ entries in the logged tensor should be like:
     1-dim: tensor(idx) == scalar e.g. loss(scalar) vs. epoch(idx)
     2-dim: tensor(idx) == vector e.g. attn_scores(vector) vs. frame
 '''
+from json import decoder
 import torch
 import matplotlib.pyplot as plt
 from utils.visualize import plot_curve, plot_mat, HeatmapLog
@@ -62,9 +63,15 @@ def main():
     # TODO load the tensor
     loss_plot = TensorVisualizer(args.folder_log, "epoch_loss")
     gradnorm_plot = TensorVisualizer(args.folder_log, 'grad_norm')
+    decoder_actv_plot = TensorVisualizer(args.folder_log, "decoder_actv")
+    rim_actv_plot = TensorVisualizer(args.folder_log, "rim_actv")
+    frame_loss_plot = TensorVisualizer(args.folder_log, "frame_loss")
     # testmat_plot = TensorVisualizer(args.folder_log, "test_mat")
     # TODO plot all-epoch tensors
     loss_plot()
+    decoder_actv_plot()
+    rim_actv_plot()
+    frame_loss_plot()
 
     # TODO plot per-epoch tensors
     for epoch_idx in [10,30,60,90,120]:
