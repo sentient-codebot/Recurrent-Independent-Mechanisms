@@ -258,6 +258,7 @@ class BallModel(nn.Module):
         ).to(self.args.device)
 
     def forward(self, x, h_prev):
+        ctx = None
         encoded_input = self.Encoder(x)
 
         if self.core=='RIM':
